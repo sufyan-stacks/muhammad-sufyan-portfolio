@@ -26,6 +26,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title,
   description: person.description,
+  verification: {
+    google: "WW9tbQ5FcysDVX52O6rqL4l5epTuxE1EOPM43_Yukqs",
+  },
   alternates: {
     canonical: "/",
     languages: {
