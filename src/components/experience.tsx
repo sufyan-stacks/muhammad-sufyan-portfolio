@@ -1,3 +1,4 @@
+import { Backdrop } from "@/components/backdrop";
 import { Eyebrow, Reveal } from "@/components/reveal";
 import { education, experience } from "@/lib/site";
 import { getDictionary, type Dictionary } from "@/lib/dictionaries";
@@ -5,7 +6,8 @@ import { getContent, type LocalizedContent } from "@/lib/content";
 
 export function Experience({ copy = getDictionary("en"), content = getContent("en") }: { copy?: Dictionary; content?: LocalizedContent }) {
   return (
-    <section id="experience" className="section-y">
+    <section id="experience" className="relative isolate section-y">
+      <Backdrop variant="soft" />
       <div className="container-page">
         <Reveal>
           <Eyebrow>{copy.sections.experienceEyebrow}</Eyebrow>

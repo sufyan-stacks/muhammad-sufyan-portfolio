@@ -1,12 +1,16 @@
+import type { CSSProperties } from "react";
 import { FaArrowDownLong, FaClock, FaLanguage, FaLaptop, FaLocationDot } from "react-icons/fa6";
 import Image from "next/image";
 import { Backdrop } from "@/components/backdrop";
+import { Counter } from "@/components/counter";
 import { Button } from "@/components/ui/button";
 import { metrics, person, stack } from "@/lib/site";
 import { getDictionary, type Dictionary } from "@/lib/dictionaries";
 import { getContent, type LocalizedContent } from "@/lib/content";
 
 export function Hero({ copy = getDictionary("en"), content = getContent("en") }: { copy?: Dictionary; content?: LocalizedContent }) {
+  const half = Math.ceil(content.stack.length / 2);
+  const stackRows = { top: content.stack.slice(0, half), bottom: content.stack.slice(half) };
   const details = [
     { label: copy.hero.basedIn, value: person.location, icon: FaLocationDot },
     { label: copy.hero.timezone, value: person.timezone, icon: FaClock },
@@ -16,21 +20,10 @@ export function Hero({ copy = getDictionary("en"), content = getContent("en") }:
   return (
     <section id="top" className="relative isolate overflow-hidden pt-28 pb-12 md:pt-32 md:pb-16">
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
-        <Image
-          src="/cover.png"
-          alt=""
-          fill
-          priority
-          fetchPriority="high"
-          quality={52}
-          sizes="100vw"
-          className="object-cover object-center opacity-32 mix-blend-screen"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,var(--color-bg)_4%,color-mix(in_srgb,var(--color-bg)_72%,transparent)_52%,color-mix(in_srgb,var(--color-bg)_30%,transparent)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-bg)_82%,transparent)_0%,transparent_42%,var(--color-bg)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-bg)_55%,transparent)_0%,transparent_38%,var(--color-bg)_100%)]" />
       </div>
       <Backdrop />
-      <div className="container-page relative z-10">
+      <div className="hero-exit container-page relative z-10">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(15rem,0.6fr)] lg:items-start lg:gap-12">
           <div>
             <h1 className="font-display text-hero">
@@ -49,13 +42,15 @@ export function Hero({ copy = getDictionary("en"), content = getContent("en") }:
             </p>
             <div className="hero-in mt-8 flex flex-col gap-3 sm:flex-row" style={{ animationDelay: "420ms" }}>
               <Button asChild size="lg">
-                <a href="#work">
+                <a href="#work" data-magnetic>
                   {copy.hero.seeWork}
                   <FaArrowDownLong className="size-4" aria-hidden="true" />
                 </a>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <a href="#contact">{copy.hero.getInTouch}</a>
+                <a href="#contact" data-magnetic>
+                  {copy.hero.getInTouch}
+                </a>
               </Button>
             </div>
             <p className="hero-in mt-6 max-w-xl text-sm uppercase tracking-[0.12em] text-subtle" style={{ animationDelay: "500ms" }}>
@@ -63,22 +58,27 @@ export function Hero({ copy = getDictionary("en"), content = getContent("en") }:
             </p>
           </div>
 
+          {/* No overflow-hidden here: the portrait deliberately breaks out past the top edge. */}
           <aside
-            className="hero-in group relative overflow-hidden rounded-2xl border border-border bg-surface/80 p-4 shadow-[0_20px_80px_-40px_rgba(142,163,150,0.45)] backdrop-blur-sm lg:max-w-sm lg:justify-self-end"
+            className="hero-in group relative mt-[4.5rem] rounded-2xl border border-border bg-surface/80 p-4 shadow-[0_20px_80px_-40px_rgba(142,163,150,0.45)] backdrop-blur-sm md:mt-20 lg:max-w-sm lg:justify-self-end"
             style={{ animationDelay: "480ms" }}
             aria-label={copy.hero.details}
           >
-            <div className="flex items-center justify-center pt-2">
-              <div className="relative size-40 overflow-hidden rounded-full bg-surface shadow-[0_24px_60px_-30px_rgba(142,163,150,0.65)] ring-1 ring-white/10 md:size-44">
-                <Image
-                  src="/me.png"
-                  alt="Muhammad Sufyan portrait"
-                  fill
-                  priority
-                  quality={75}
-                  sizes="(min-width: 1024px) 15rem, 100vw"
-                  className="object-cover object-[center_16%] transition-transform duration-500 group-hover:scale-[1.05]"
-                />
+            <div className="flex items-center justify-center">
+              {/* Negative margin = half the portrait + card padding, so half sits above the edge. */}
+              <div className="hero-avatar relative -mt-[5.5rem] size-36 md:-mt-24 md:size-40">
+                <div className="relative size-full overflow-hidden rounded-full bg-surface shadow-[0_24px_60px_-30px_rgba(142,163,150,0.65)] ring-1 ring-white/10">
+                  <Image
+                    src="/me.png"
+                    alt="Muhammad Sufyan portrait"
+                    fill
+                    priority
+                    quality={75}
+                    sizes="(min-width: 768px) 10rem, 9rem"
+                    className="object-cover object-[center_16%] transition-transform duration-500 group-hover:scale-[1.05]"
+                  />
+                </div>
+                <span className="hero-avatar-status" aria-hidden="true" />
               </div>
             </div>
             <div className="mt-5 space-y-3">
@@ -101,19 +101,34 @@ export function Hero({ copy = getDictionary("en"), content = getContent("en") }:
             style={{ animationDelay: "560ms" }}
           >
             {content.metrics.map((m) => (
-              <li key={m.label} className="bg-surface px-5 py-5 md:px-6 md:py-6">
-                <p className="font-display text-2xl tabular-nums md:text-3xl">{m.value}</p>
+              <li key={m.label} data-spotlight className="bg-surface px-5 py-5 md:px-6 md:py-6">
+                <p className="font-display text-2xl tabular-nums md:text-3xl">
+                  <Counter value={m.value} />
+                </p>
                 <p className="mt-1 text-sm text-muted">{m.label}</p>
               </li>
             ))}
           </ul>
-          <ul className="hero-in mt-8 flex flex-wrap gap-2" style={{ animationDelay: "640ms" }}>
-            {content.stack.map((item) => (
-              <li key={item} className="rounded-full px-3 py-1.5 text-sm text-muted shadow-[var(--shadow-border)]">
-                {item}
-              </li>
+          {/* Each row is duplicated to loop without a seam; the copy is hidden from screen readers. */}
+          <div className="hero-in mt-8 space-y-2" style={{ animationDelay: "640ms" }}>
+            {[stackRows.top, stackRows.bottom].map((row, rowIndex) => (
+              <div key={rowIndex} className={rowIndex === 1 ? "marquee marquee-reverse" : "marquee"}>
+                {[false, true].map((clone) => (
+                  <ul key={String(clone)} className="marquee-track" aria-hidden={clone || undefined}>
+                    {row.map((item, i) => (
+                      <li
+                        key={item}
+                        className="skill-pill whitespace-nowrap rounded-full px-3 py-1.5 text-sm text-muted"
+                        style={{ "--pill-delay": `${(((i + rowIndex * 3) % 6) * -0.8).toFixed(1)}s` } as CSSProperties}
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                ))}
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       </div>
     </section>

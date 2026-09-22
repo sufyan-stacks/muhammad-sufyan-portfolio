@@ -40,9 +40,9 @@ export async function generateMetadata({
       type: "profile",
       images: [
         {
-          url: "/cover.png",
-          width: 1536,
-          height: 1024,
+          url: "/cover-og.jpg",
+          width: 1200,
+          height: 630,
           alt: "Muhammad Sufyan working on a software project",
         },
       ],
@@ -51,7 +51,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: copy.title,
       description: copy.description,
-      images: ["/cover.png"],
+      images: ["/cover-og.jpg"],
     },
   };
 }

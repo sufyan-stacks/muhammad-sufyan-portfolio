@@ -1,3 +1,4 @@
+import { Backdrop } from "@/components/backdrop";
 import { Button } from "@/components/ui/button";
 import { Eyebrow, Reveal } from "@/components/reveal";
 import { services } from "@/lib/site";
@@ -6,7 +7,8 @@ import { getContent, type LocalizedContent } from "@/lib/content";
 
 export function Services({ copy = getDictionary("en"), content = getContent("en") }: { copy?: Dictionary; content?: LocalizedContent }) {
   return (
-    <section id="services" className="section-y">
+    <section id="services" className="relative isolate section-y">
+      <Backdrop variant="soft" />
       <div className="container-page">
         <Reveal>
           <Eyebrow>{copy.sections.servicesEyebrow}</Eyebrow>
@@ -19,7 +21,7 @@ export function Services({ copy = getDictionary("en"), content = getContent("en"
         <div className="mt-10 grid gap-4 lg:grid-cols-3">
           {content.services.map((s, i) => (
             <Reveal key={s.name} delay={i * 70} className="h-full">
-              <article className="flex h-full flex-col rounded-2xl border border-border bg-surface p-6 md:p-7">
+              <article data-spotlight className="flex h-full flex-col rounded-2xl border border-border bg-surface p-6 md:p-7">
                 <h3 className="text-xl font-medium">{s.name}</h3>
                 <p className="mt-2 text-base text-muted">{s.audience}</p>
                 <ul className="mt-6 flex-1 space-y-3">

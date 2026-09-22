@@ -31,7 +31,6 @@ export const person = {
   whatsappHref: "",
   linkedin: "https://linkedin.com/in/muhammad-sufyan-devs",
   github: "https://github.com/sufyan-stacks",
-  availability: "Available for product builds, AI integrations, and consulting",
   headline:
     "I build AI assistants, workflow automation, and production SaaS products that turn business operations into reliable digital systems.",
   description:
@@ -146,6 +145,29 @@ export const work = [
       "Employee engagement measured without exposing individual responses",
     ],
     tech: ["React", "Node.js", "Python", "Socket.io", "Redis", "OpenAI API", "Webhooks"],
+  },
+  {
+    id: "damndeal",
+    name: "DamnDeal",
+    period: "2026",
+    role: "Full-stack developer",
+    client: "Local commerce brand",
+    tagline: "Shopping, 10-minute delivery and QR coupons in one platform.",
+    image: "/work/damndeal.png",
+    imageWidth: 1448,
+    imageHeight: 1086,
+    imageAlt:
+      "DamnDeal on a laptop, tablet and phone, showing the storefront, the coupon flow and 10-minute delivery from nearby stores.",
+    challenge:
+      "DamnDeal wanted online shopping, 10-minute local delivery and local coupons under one brand.",
+    contribution:
+      "I built it as one platform with four portals: customer, vendor, admin and business associate. Customers claim a coupon and get a unique QR code. The business verifies it once at the counter, or from its own website through an API.",
+    outcomes: [
+      "Each QR code verifies once, so a coupon cannot be reused or faked",
+      "Associates bring in new businesses with referral codes",
+      "Live in production at damndeal.com",
+    ],
+    tech: ["Next.js", "Node.js", "TypeScript", "MongoDB", "Redis"],
   },
 ] as const;
 

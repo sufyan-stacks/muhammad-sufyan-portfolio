@@ -1,3 +1,4 @@
+import { Backdrop } from "@/components/backdrop";
 import { Eyebrow, Reveal } from "@/components/reveal";
 import { principles, skillGroups } from "@/lib/site";
 import { getDictionary, type Dictionary } from "@/lib/dictionaries";
@@ -5,7 +6,8 @@ import { getContent, type LocalizedContent } from "@/lib/content";
 
 export function Approach({ copy = getDictionary("en"), content = getContent("en") }: { copy?: Dictionary; content?: LocalizedContent }) {
   return (
-    <section id="approach" className="section-y">
+    <section id="approach" className="relative isolate section-y">
+      <Backdrop variant="soft" />
       <div className="container-page">
         <Reveal>
           <Eyebrow>{copy.sections.approachEyebrow}</Eyebrow>
@@ -14,7 +16,7 @@ export function Approach({ copy = getDictionary("en"), content = getContent("en"
 
         <div className="mt-10 grid gap-px overflow-hidden rounded-2xl bg-border md:grid-cols-3">
           {content.principles.map((p, i) => (
-            <Reveal key={p.title} delay={i * 80} className="bg-surface p-6 md:p-8">
+            <Reveal key={p.title} delay={i * 80} className="bg-surface p-6 md:p-8" data-spotlight>
               <h3 className="text-lg font-medium">{p.title}</h3>
               <p className="mt-3 text-base leading-relaxed text-muted">{p.body}</p>
             </Reveal>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaBars, FaChevronDown, FaXmark } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,20 @@ export function SiteNav({ lang = "en", copy = getDictionary("en") }: { lang?: Lo
   const [hidden, setHidden] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState<string>("");
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const navRef = useRef<HTMLElement>(null);
+  const [pill, setPill] = useState<{ left: number; width: number } | null>(null);
+
+  // Re-measured on resize, because the links reflow and old offsets would strand the pill.
+  useEffect(() => {
+    const measure = () => {
+      const link = navRef.current?.querySelector<HTMLAnchorElement>(`a[href="${active}"]`);
+      setPill(link ? { left: link.offsetLeft, width: link.offsetWidth } : null);
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [active]);
 
   // Hide the bar while scrolling down, show it again on the way up.
   useEffect(() => {
@@ -22,8 +35,6 @@ export function SiteNav({ lang = "en", copy = getDictionary("en") }: { lang?: Lo
       const y = window.scrollY;
       setScrolled(y > 8);
       setHidden(y > last && y > 80);
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      setScrollProgress(maxScroll > 0 ? Math.min(100, Math.max(0, (y / maxScroll) * 100)) : 0);
       last = y;
     };
     onScroll();
@@ -71,13 +82,8 @@ export function SiteNav({ lang = "en", copy = getDictionary("en") }: { lang?: Lo
   return (
     <>
       <span
-        className="pointer-events-none fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-accent transition-[width] duration-100 ease-out"
-        style={{ width: `${scrollProgress}%` }}
-        role="progressbar"
-        aria-label="Page scroll progress"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(scrollProgress)}
+        aria-hidden="true"
+        className="scroll-progress pointer-events-none fixed inset-x-0 top-0 z-50 h-0.5 bg-accent"
       />
       <header
         className={cn(
@@ -104,7 +110,20 @@ export function SiteNav({ lang = "en", copy = getDictionary("en") }: { lang?: Lo
             </div>
           </a>
 
-          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:flex" aria-label="Primary">
+          <nav
+            ref={navRef}
+            className="relative hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex"
+            aria-label="Primary"
+          >
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-0 top-1/2 -z-10 h-8 -translate-y-1/2 rounded-lg bg-surface transition-[transform,width,opacity] duration-300 ease-out"
+              style={
+                pill
+                  ? { width: pill.width, transform: `translate(${pill.left}px, -50%)`, opacity: 1 }
+                  : { opacity: 0 }
+              }
+            />
             {nav.map((item, index) => (
               <a
                 key={item.href}
@@ -112,9 +131,8 @@ export function SiteNav({ lang = "en", copy = getDictionary("en") }: { lang?: Lo
                 aria-current={active === item.href ? "true" : undefined}
                 onClick={() => setActive(item.href)}
                 className={cn(
-                  "relative rounded-lg px-2.5 py-2 text-sm transition-[color,background-color] duration-150 after:absolute after:inset-x-2.5 after:bottom-0.5 after:h-px after:origin-center after:scale-x-0 after:bg-accent after:transition-transform",
+                  "whitespace-nowrap rounded-lg px-2.5 py-2 text-sm transition-colors duration-150",
                   active === item.href ? "text-fg" : "text-muted hover:text-fg",
-                  active === item.href ? "after:scale-x-100" : "",
                 )}
               >
                 {copy.nav[index]}
@@ -123,7 +141,7 @@ export function SiteNav({ lang = "en", copy = getDictionary("en") }: { lang?: Lo
           </nav>
 
           <div className="flex shrink-0 items-center gap-1.5">
-            <label className="relative hidden items-center xl:flex" aria-label="Language">
+            <label className="relative hidden items-center lg:flex" aria-label="Language">
               <select
                 value={lang}
                 onChange={(event) => {
@@ -140,17 +158,15 @@ export function SiteNav({ lang = "en", copy = getDictionary("en") }: { lang?: Lo
               </select>
               <FaChevronDown className="pointer-events-none absolute right-1.5 size-3.5 text-subtle" aria-hidden="true" />
             </label>
-            <div className="flex xl:hidden" />
-            <span className="mr-1 hidden items-center gap-2 text-sm text-accent 2xl:inline-flex">
-              <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
-              {copy.hero.availability}
-            </span>
-            <Button asChild size="sm" className="hidden xl:inline-flex">
-              <a href="#contact">{copy.hero.getInTouch}</a>
+            <div className="flex lg:hidden" />
+            <Button asChild size="sm" variant="outline" className="hidden lg:inline-flex">
+              <a href="#contact" data-magnetic>
+                {copy.hero.getInTouch}
+              </a>
             </Button>
             <button
               type="button"
-              className="inline-flex size-11 items-center justify-center rounded-xl hover:bg-surface xl:hidden"
+              className="inline-flex size-11 items-center justify-center rounded-xl hover:bg-surface lg:hidden"
               aria-expanded={open}
               aria-controls="mobile-nav"
               aria-label={open ? "Close menu" : "Open menu"}
@@ -175,7 +191,7 @@ export function SiteNav({ lang = "en", copy = getDictionary("en") }: { lang?: Lo
         </div>
       </header>
       {open ? (
-        <div id="mobile-nav" className="fixed inset-x-0 top-16 bottom-0 z-30 overflow-y-auto bg-bg xl:hidden">
+        <div id="mobile-nav" className="fixed inset-x-0 top-16 bottom-0 z-30 overflow-y-auto bg-bg lg:hidden">
           <nav className="container-page flex flex-col py-8" aria-label="Mobile">
             {nav.map((item, index) => (
               <a

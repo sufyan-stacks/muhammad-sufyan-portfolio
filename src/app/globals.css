@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* The locale switcher does a full navigation, so the browser can cross-fade it. */
+@view-transition {
+  navigation: auto;
+}
+
 @theme {
   --font-sans: var(--font-sans-loaded), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-display-loaded), ui-serif, Georgia, "Times New Roman", serif;
@@ -126,10 +131,11 @@
   contain: paint;
 }
 
-/* Two soft colour washes that drift very slowly. Only transform is animated. */
+/* Unequal periods, so the three glows never fall into a visible repeating pattern. */
 .backdrop-glow {
   position: absolute;
   border-radius: 9999px;
+  will-change: transform;
 }
 
 .backdrop-glow-a {
@@ -139,6 +145,7 @@
   top: -30%;
   opacity: 0.3;
   background: radial-gradient(closest-side, var(--color-accent), transparent);
+  animation: glow-a 29s ease-in-out infinite alternate;
 }
 
 .backdrop-glow-b {
@@ -149,27 +156,43 @@
   top: 5%;
   opacity: 0.16;
   background: radial-gradient(closest-side, #c8a978, transparent);
+  animation: glow-b 41s ease-in-out infinite alternate;
 }
 
-@media (min-width: 768px) {
-  .backdrop-glow-b {
-    display: block;
+.backdrop-glow-c {
+  display: none;
+  width: min(34rem, 90vw);
+  aspect-ratio: 1;
+  left: 34%;
+  top: 38%;
+  opacity: 0.14;
+  background: radial-gradient(closest-side, #7f9bb0, transparent);
+  animation: glow-c 53s ease-in-out infinite alternate;
+}
+
+@keyframes glow-a {
+  to {
+    transform: translate3d(7%, 9%, 0) scale(1.18);
   }
 }
 
-/* Fine grid, faded out toward the edges so it never looks like a hard pattern. */
-.backdrop-grid {
-  position: absolute;
-  inset: 0;
-  opacity: 0.95;
-  background-image:
-    linear-gradient(color-mix(in oklab, var(--color-fg) 8%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--color-fg) 8%, transparent) 1px, transparent 1px);
-  background-size: 64px 64px;
-  background-position: center top;
-  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 25%, #000 25%, transparent 78%);
-  mask-image: radial-gradient(ellipse 75% 65% at 50% 25%, #000 25%, transparent 78%);
-  filter: drop-shadow(0 0 2px color-mix(in oklab, var(--color-accent) 18%, transparent));
+@keyframes glow-b {
+  to {
+    transform: translate3d(-9%, 6%, 0) scale(1.24);
+  }
+}
+
+@keyframes glow-c {
+  to {
+    transform: translate3d(5%, -11%, 0) scale(0.84);
+  }
+}
+
+@media (min-width: 768px) {
+  .backdrop-glow-b,
+  .backdrop-glow-c {
+    display: block;
+  }
 }
 
 /* Film grain removes the flat, digital look of large gradients. */
@@ -190,8 +213,8 @@
   background: linear-gradient(to bottom, transparent, var(--color-bg));
 }
 
-.backdrop-soft .backdrop-grid,
-.backdrop-soft .backdrop-glow-b {
+.backdrop-soft .backdrop-glow-b,
+.backdrop-soft .backdrop-glow-c {
   display: none;
 }
 
@@ -200,9 +223,14 @@
   right: -20%;
   top: auto;
   bottom: -40%;
-  opacity: 0.12;
+  opacity: 0.22;
 }
 
+/* Alternate the glow side so the same shape does not repeat down the page. */
+main > section:nth-of-type(even) .backdrop-soft .backdrop-glow-a {
+  right: auto;
+  left: -20%;
+}
 
 /* ---------- Entrance motion ---------- */
 
@@ -234,55 +262,21 @@
   }
 }
 
+/* A filter, not a transform: the scroll parallax owns transform on this image. */
 .work-frame img {
-  transition: transform 700ms var(--ease-out);
+  transition: filter 400ms var(--ease-out);
 }
 
 @media (hover: hover) {
   .work-frame:hover img {
-    transform: scale(1.03);
+    filter: saturate(1.08) brightness(1.04);
   }
 }
 
 @media (max-width: 767px) {
-  .reveal[data-armed="true"],
-  .reveal[data-armed="true"].is-in,
-  .hero-in {
-    opacity: 1;
-    transform: none;
-    animation: none;
-    transition: none;
-  }
-
-  .work-frame img,
-  .work-frame:hover img {
-    transform: none;
-    transition: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  .reveal[data-armed="true"],
-  .reveal[data-armed="true"].is-in,
-  .hero-in {
-    opacity: 1;
-    transform: none;
-    animation: none;
-    transition: none;
-  }
-
-  .backdrop-glow {
-    animation: none;
-  }
-
-  .work-frame img,
-  .work-frame:hover img {
-    transform: none;
-    transition: none;
+  .reveal[data-armed="true"] {
+    transform: translateY(6px);
+    transition-duration: 320ms;
   }
 }
 
@@ -295,4 +289,353 @@
     opacity: 1;
     transform: none;
   }
+}
+
+/* ---------- Scroll-driven motion ---------- */
+
+.scroll-progress {
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+@keyframes scroll-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* The scale leaves room to drift without exposing an edge. */
+@keyframes work-parallax {
+  from {
+    transform: translateY(-2.4%) scale(1.07);
+  }
+  to {
+    transform: translateY(2.4%) scale(1.07);
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    animation: scroll-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  /* data-armed is only set when reveal.tsx falls back to JS, so these never both run. */
+  .reveal:not([data-armed="true"]) {
+    animation: reveal-in linear both;
+    animation-timeline: view();
+    animation-range: entry calc(5% + var(--reveal-stagger, 0%)) entry calc(65% + var(--reveal-stagger, 0%));
+  }
+
+  .work-frame img {
+    animation: work-parallax linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+  }
+}
+
+/* Ends at 0.2, not 0, because the range end lands slightly differently across browsers. */
+@keyframes hero-exit {
+  to {
+    opacity: 0.2;
+    transform: translateY(-2rem) scale(0.98);
+  }
+}
+
+@keyframes card-recede {
+  to {
+    opacity: 0.3;
+    transform: translateY(-1.25rem) scale(0.95);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .hero-exit {
+    animation: hero-exit linear both;
+    animation-timeline: view();
+    animation-range: exit 0% exit 95%;
+  }
+
+  .work-card {
+    animation: card-recede linear both;
+    animation-timeline: view();
+    animation-range: exit 10% exit 100%;
+  }
+}
+
+/* ---------- Pointer and surface effects ---------- */
+
+[data-spotlight] {
+  position: relative;
+}
+
+[data-spotlight]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms var(--ease-out);
+  background: radial-gradient(
+    16rem circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in oklab, var(--color-accent) 13%, transparent),
+    transparent 68%
+  );
+}
+
+@media (hover: hover) {
+  [data-spotlight]:hover::after {
+    opacity: 1;
+  }
+}
+
+/* translate, not transform, so it composes with the button's press-down scale. */
+[data-magnetic] {
+  translate: var(--mag-x, 0) var(--mag-y, 0);
+  transition: translate 220ms var(--ease-out);
+}
+
+/* ---------- Marquee ---------- */
+
+.marquee {
+  --marquee-gap: 0.5rem;
+  display: flex;
+  gap: var(--marquee-gap);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+
+.marquee-track {
+  display: flex;
+  flex: none;
+  gap: var(--marquee-gap);
+  min-width: 100%;
+  animation: marquee 26s linear infinite;
+}
+
+.marquee-reverse .marquee-track {
+  animation-direction: reverse;
+}
+
+/* Paused on hover so the skills can be read. */
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(calc(-100% - var(--marquee-gap)));
+  }
+}
+
+/* ---------- Headings ---------- */
+
+@keyframes heading-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .section-y h2 {
+    animation: heading-wipe linear both;
+    animation-timeline: view();
+    animation-range: entry 15% entry 70%;
+  }
+}
+
+/* ---------- Node network ---------- */
+
+.backdrop-net {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Kept faint because the headline sits on top. */
+  opacity: 0.4;
+  -webkit-mask-image: radial-gradient(ellipse 62% 56% at 52% 28%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(ellipse 62% 56% at 52% 28%, #000 0%, transparent 72%);
+}
+
+/* The desktop ellipse leaves a thin band on tall phones, so widen it past the viewport. */
+@media (max-width: 767px) {
+  .backdrop-net {
+    opacity: 0.5;
+    -webkit-mask-image: radial-gradient(ellipse 115% 78% at 50% 42%, #000 15%, transparent 88%);
+    mask-image: radial-gradient(ellipse 115% 78% at 50% 42%, #000 15%, transparent 88%);
+  }
+}
+
+.net-base line {
+  stroke: color-mix(in oklab, var(--color-accent) 20%, transparent);
+  stroke-width: 0.11;
+}
+
+.net-flow line {
+  stroke: color-mix(in oklab, var(--color-accent) 60%, transparent);
+  stroke-width: 0.16;
+  stroke-linecap: round;
+  /* Dash plus gap must equal the dashoffset (17) or every loop visibly jumps. */
+  stroke-dasharray: 8 9;
+  animation: net-pulse 6.5s linear infinite;
+}
+
+@keyframes net-pulse {
+  to {
+    stroke-dashoffset: -17;
+  }
+}
+
+.net-node {
+  r: 0.55;
+  fill: var(--color-accent);
+  filter: drop-shadow(0 0 0.8px var(--color-accent));
+  animation: net-glow 5s ease-in-out infinite alternate;
+}
+
+@keyframes net-glow {
+  from {
+    r: 0.5;
+    opacity: 0.3;
+  }
+  to {
+    r: 0.95;
+    opacity: 0.7;
+  }
+}
+
+/* ---------- Hero portrait ---------- */
+
+.hero-avatar {
+  animation: avatar-float 6s ease-in-out infinite alternate;
+}
+
+@keyframes avatar-float {
+  to {
+    transform: translateY(-8px);
+  }
+}
+
+/* The opaque portrait covers all but a 4px rim of this. */
+.hero-avatar::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  opacity: 0.55;
+  background: conic-gradient(
+    from 0deg,
+    transparent 10%,
+    var(--color-accent) 30%,
+    transparent 55%,
+    var(--color-accent) 80%,
+    transparent 95%
+  );
+  animation: avatar-ring 9s linear infinite;
+}
+
+@keyframes avatar-ring {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.hero-avatar-status {
+  position: absolute;
+  right: 7%;
+  bottom: 7%;
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-surface);
+}
+
+.hero-avatar-status::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-accent);
+  animation: status-ping 2.6s ease-out infinite;
+}
+
+@keyframes status-ping {
+  from {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.3);
+  }
+}
+
+/* ---------- Skill badges ---------- */
+
+/* Registered as an <angle> so the gradient rotates instead of jumping. */
+@property --pill-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.skill-pill {
+  position: relative;
+}
+
+/* The two masks cancel everywhere except the 1px padding, leaving only the border. */
+.skill-pill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--pill-angle),
+    color-mix(in oklab, var(--color-fg) 12%, transparent) 0deg,
+    var(--color-accent) 55deg,
+    color-mix(in oklab, var(--color-fg) 12%, transparent) 135deg,
+    color-mix(in oklab, var(--color-fg) 12%, transparent) 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: pill-spin 5s linear infinite;
+  animation-delay: var(--pill-delay, 0s);
+}
+
+@keyframes pill-spin {
+  to {
+    --pill-angle: 360deg;
+  }
+}
+
+/* These loops repaint on the main thread every frame, so they wait until the page has loaded
+   (layout.tsx sets data-motion). The first frame is already a finished picture, so nothing
+   looks missing before they start. */
+html:not([data-motion]) .net-flow line,
+html:not([data-motion]) .net-node,
+html:not([data-motion]) .skill-pill::before {
+  animation-play-state: paused;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentProps, type CSSProperties, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 // Fades content in as it scrolls into view. Content is visible until this mounts, so nothing
@@ -9,11 +9,8 @@ export function Reveal({
   children,
   className,
   delay = 0,
-}: {
-  children: ReactNode;
-  className?: string;
-  delay?: number;
-}) {
+  ...rest
+}: ComponentProps<"div"> & { delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [armed, setArmed] = useState(false);
   const [shown, setShown] = useState(false);
@@ -22,10 +19,10 @@ export function Reveal({
     const el = ref.current;
     if (!el) return;
 
-    const mobile = window.matchMedia("(max-width: 767px)").matches;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // globals.css animates this with a scroll timeline where supported.
+    if (CSS.supports("animation-timeline: view()")) return;
 
-    if (mobile || reduceMotion) {
+    if (window.matchMedia("(max-width: 767px)").matches) {
       setShown(true);
       return;
     }
@@ -47,11 +44,18 @@ export function Reveal({
     return () => io.disconnect();
   }, []);
 
-  const style: CSSProperties | undefined = delay ? { transitionDelay: `${delay}ms` } : undefined;
+  // animation-delay does nothing on a scroll timeline, so the CSS path shifts the range instead.
+  const style = delay
+    ? ({
+        transitionDelay: `${delay}ms`,
+        "--reveal-stagger": `${Math.min(delay / 10, 18)}%`,
+      } as CSSProperties)
+    : undefined;
 
   return (
     <div
       ref={ref}
+      {...rest}
       data-armed={armed}
       className={cn("reveal", shown && "is-in", className)}
       style={style}

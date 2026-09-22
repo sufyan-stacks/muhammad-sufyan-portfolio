@@ -4,6 +4,7 @@ import { Experience } from "@/components/experience";
 import { SiteFooter } from "@/components/footer";
 import { Hero } from "@/components/hero";
 import { SiteNav } from "@/components/nav";
+import { PointerFx } from "@/components/pointer-fx";
 import { Services } from "@/components/services";
 import { Work } from "@/components/work";
 import { getDictionary } from "@/lib/dictionaries";
@@ -25,6 +26,7 @@ export default function Home() {
         <Contact copy={copy} />
       </main>
       <SiteFooter />
+      <PointerFx />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Figtree, Fraunces } from "next/font/google";
+import Script from "next/script";
 import { personJsonLd, person } from "@/lib/site";
 import { defaultLocale, getAlternateLanguageUrls, localeOpenGraph, locales } from "@/lib/i18n";
 import "./globals.css";
@@ -45,9 +46,9 @@ export const metadata: Metadata = {
     alternateLocale: locales.filter((locale) => locale !== defaultLocale).map((locale) => localeOpenGraph[locale]),
     images: [
       {
-        url: "/cover.png",
-        width: 1536,
-        height: 1024,
+        url: "/cover-og.jpg",
+        width: 1200,
+        height: 630,
         alt: "Muhammad Sufyan working on a software project",
       },
     ],
@@ -56,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description: person.description,
-    images: ["/cover.png"],
+    images: ["/cover-og.jpg"],
   },
 };
 
@@ -87,6 +88,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           }}
         />
         {children}
+        {/* Starts the repaint-heavy background loops only once the page has loaded (see globals.css). */}
+        <Script id="motion-ready" strategy="lazyOnload">
+          {`document.documentElement.dataset.motion = "on";`}
+        </Script>
       </body>
     </html>
   );

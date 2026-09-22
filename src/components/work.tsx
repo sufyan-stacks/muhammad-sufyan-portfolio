@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Backdrop } from "@/components/backdrop";
 import { Eyebrow, Reveal } from "@/components/reveal";
 import { work } from "@/lib/site";
 import { getDictionary, type Dictionary } from "@/lib/dictionaries";
@@ -6,7 +7,8 @@ import { getContent, type LocalizedContent } from "@/lib/content";
 
 export function Work({ copy = getDictionary("en"), content = getContent("en") }: { copy?: Dictionary; content?: LocalizedContent }) {
   return (
-    <section id="work" className="section-y">
+    <section id="work" className="relative isolate section-y">
+      <Backdrop variant="soft" />
       <div className="container-page">
         <Reveal>
           <Eyebrow>{copy.sections.workEyebrow}</Eyebrow>
@@ -17,7 +19,7 @@ export function Work({ copy = getDictionary("en"), content = getContent("en") }:
 
         <div className="mt-10 flex flex-col gap-16 md:mt-12 md:gap-20">
           {content.work.map((item, i) => (
-            <article key={item.id} className="group grid min-w-0 items-start gap-8 lg:grid-cols-12 lg:gap-12">
+            <article key={item.id} className="work-card group grid min-w-0 items-start gap-8 lg:grid-cols-12 lg:gap-12">
               <Reveal className={i % 2 === 1 ? "min-w-0 lg:order-2 lg:col-span-7" : "min-w-0 lg:col-span-7"}>
                 <figure className="work-frame min-w-0 overflow-hidden rounded-2xl bg-surface/40 p-2">
                   <Image
